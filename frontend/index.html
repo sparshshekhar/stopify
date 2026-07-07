@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Slotify — Parking Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">P</span>
+      <h1>SLOTIFY</h1>
+    </div>
+    <div class="stats" id="stats">
+      <div class="stat"><span class="stat-num" id="statEmpty">–</span><span class="stat-label">Free</span></div>
+      <div class="stat"><span class="stat-num" id="statOccupied">–</span><span class="stat-label">Occupied</span></div>
+      <div class="stat"><span class="stat-num" id="statTotal">–</span><span class="stat-label">Total Bays</span></div>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <section class="lot-panel">
+      <h2 class="panel-title">Lot Overview</h2>
+      <div class="lot-grid" id="lotGrid">
+        <!-- slots injected by app.js -->
+      </div>
+
+      <h2 class="panel-title" style="margin-top: 32px;">Currently Parked</h2>
+      <table class="sessions-table">
+        <thead>
+          <tr><th>Slot</th><th>Plate</th><th>Type</th><th>Entered</th></tr>
+        </thead>
+        <tbody id="activeSessionsBody">
+          <tr><td colspan="4" class="empty-row">No vehicles parked right now.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="ticket-panel">
+
+      <div class="ticket" id="entryTicket">
+        <div class="ticket-notch"></div>
+        <h2 class="panel-title">Vehicle Entry</h2>
+        <form id="entryForm">
+          <label>Plate Number
+            <input type="text" id="entryPlate" placeholder="e.g. UP15AB1234" required />
+          </label>
+          <label>Vehicle Type
+            <select id="entryType">
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-go">Issue Ticket</button>
+        </form>
+        <div class="ticket-result" id="entryResult"></div>
+      </div>
+
+      <div class="ticket" id="exitTicket">
+        <div class="ticket-notch"></div>
+        <h2 class="panel-title">Vehicle Exit</h2>
+        <form id="exitForm">
+          <label>Plate Number
+            <input type="text" id="exitPlate" placeholder="e.g. UP15AB1234" required />
+          </label>
+          <button type="submit" class="btn btn-stop">Calculate Bill</button>
+        </form>
+        <div class="ticket-result" id="exitResult"></div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

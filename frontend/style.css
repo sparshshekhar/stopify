@@ -1,0 +1,272 @@
+:root {
+  --asphalt: #1b1b1d;
+  --concrete: #2c2c2e;
+  --concrete-light: #38383b;
+  --caution: #f5b800;
+  --lane-white: #ededed;
+  --go-green: #3fa34d;
+  --exit-red: #d64545;
+  --muted: #8f8f93;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--asphalt);
+  color: var(--lane-white);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px;
+  border-bottom: 3px solid var(--caution);
+  background: var(--concrete);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  background: var(--caution);
+  color: var(--asphalt);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  border-radius: 4px;
+}
+
+.brand h1 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 22px;
+  margin: 0;
+}
+
+.stats { display: flex; gap: 28px; }
+.stat { text-align: center; }
+.stat-num {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--caution);
+}
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  padding: 28px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 14px 0;
+}
+
+/* ── Lot grid: painted parking bays ─────────────────────────────────── */
+.lot-panel {
+  background: var(--concrete);
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.lot-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  background: repeating-linear-gradient(
+    90deg, var(--asphalt), var(--asphalt) 78px, #232325 78px, #232325 80px
+  );
+  padding: 20px;
+  border-radius: 8px;
+}
+
+@media (max-width: 560px) {
+  .lot-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.bay {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border: 2px dashed var(--lane-white);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.bay-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--lane-white);
+}
+
+.bay-icon { font-size: 20px; line-height: 1; }
+
+.bay.empty { border-color: var(--go-green); }
+.bay.empty .bay-icon { color: var(--go-green); }
+
+.bay.occupied {
+  border-style: solid;
+  border-color: var(--exit-red);
+  background: rgba(214, 69, 69, 0.12);
+}
+.bay.occupied .bay-icon { color: var(--exit-red); }
+
+/* ── Sessions table ──────────────────────────────────────────────────── */
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.sessions-table th {
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--concrete-light);
+}
+.sessions-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--concrete-light);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+.empty-row {
+  text-align: center;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  padding: 20px 0;
+}
+
+/* ── Ticket panel ────────────────────────────────────────────────────── */
+.ticket-panel { display: flex; flex-direction: column; gap: 20px; }
+
+.ticket {
+  position: relative;
+  background: var(--concrete);
+  border-radius: 8px;
+  padding: 22px 22px 20px;
+  border-left: 4px solid var(--caution);
+}
+
+.ticket-notch {
+  position: absolute;
+  top: -3px; left: 20px; right: 20px;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg, var(--asphalt) 0, var(--asphalt) 6px, transparent 6px, transparent 12px
+  );
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+input, select {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  background: var(--asphalt);
+  border: 1px solid var(--concrete-light);
+  color: var(--lane-white);
+  padding: 10px 12px;
+  border-radius: 5px;
+}
+input:focus, select:focus {
+  outline: 2px solid var(--caution);
+  outline-offset: 1px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btn-go { background: var(--go-green); color: #0d1f10; }
+.btn-stop { background: var(--exit-red); color: #250a0a; }
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 2px solid var(--caution); outline-offset: 2px; }
+
+.ticket-result { margin-top: 14px; font-size: 13px; }
+.ticket-result:empty { display: none; }
+
+.result-card {
+  background: var(--asphalt);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.result-card.error { border-left: 3px solid var(--exit-red); color: #ffb4b4; }
+.result-card.success { border-left: 3px solid var(--go-green); }
+
+.result-card .amount {
+  color: var(--caution);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.pay-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--caution);
+  background: transparent;
+  color: var(--caution);
+  border-radius: 5px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pay-btn:hover { background: var(--caution); color: var(--asphalt); }
