@@ -177,7 +177,7 @@ app.get("/api/sessions/active", async (req, res) => {
 });
 
 // ── POST /api/entry ─────────────────────────────────────────────────────
-app.post("/api/entry", async (req, res) => {
+app.post("/api/entry", authenticateToken, async (req, res) => {
   const { plateNumber, vehicleType } = req.body;
 
   if (!plateNumber) {
@@ -203,10 +203,10 @@ app.post("/api/entry", async (req, res) => {
     const slot = freeSlot.rows[0];
 
     const session = await db.query(
-      `INSERT INTO sessions (plate_number, vehicle_type, slot_id)
-       VALUES ($1, $2, $3)
+      `INSERT INTO sessions (plate_number, vehicle_type, slot_id, user_id)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, plate_number, vehicle_type, slot_id, entry_time`,
-      [plateNumber, type, slot.id],
+      [plateNumber, type, slot.id, req.user.id],
     );
     await db.query(
       "UPDATE slots SET status = 'occupied', updated_at = now() WHERE id = $1",
@@ -227,7 +227,7 @@ app.post("/api/entry", async (req, res) => {
 });
 
 // ── POST /api/exit ──────────────────────────────────────────────────────
-app.post("/api/exit", async (req, res) => {
+app.post("/api/exit", authenticateToken, async (req, res) => {
   const { plateNumber } = req.body;
 
   if (!plateNumber) {
@@ -287,7 +287,7 @@ app.post("/api/exit", async (req, res) => {
 // Body: { ticketId, method }
 // Simulates a payment gateway: no real money moves, but this generates a
 // real transaction record and marks the session as paid.
-app.post("/api/payments/charge", async (req, res) => {
+app.post("/api/payments/charge", authenticateToken, async (req, res) => {
   const { ticketId, method } = req.body;
   const paymentMethod = method || "card";
 
@@ -342,6 +342,85 @@ app.post("/api/payments/charge", async (req, res) => {
     res.status(500).json({ error: "Failed to process payment" });
   }
 });
+
+// ── GET /api/admin/stats ─────────────────────────────────────────────────
+// Admin only. Today's vehicle count, today's revenue, currently parked count.
+app.get(
+  "/api/admin/stats",
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const vehiclesToday = await db.query(
+        "SELECT COUNT(*) FROM sessions WHERE entry_time::date = CURRENT_DATE",
+      );
+      const revenueToday = await db.query(
+        "SELECT COALESCE(SUM(amount), 0) AS total FROM payments WHERE paid_at::date = CURRENT_DATE",
+      );
+      const currentlyParked = await db.query(
+        "SELECT COUNT(*) FROM sessions WHERE status = 'active'",
+      );
+
+      // Revenue for each of the last 7 days (including days with ₹0, so the
+      // chart always shows a full week, not just days that had activity).
+      const revenueTrend = await db.query(
+        `SELECT gs::date AS day, COALESCE(SUM(p.amount), 0) AS total
+       FROM generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, INTERVAL '1 day') AS gs
+       LEFT JOIN payments p ON p.paid_at::date = gs::date
+       GROUP BY gs
+       ORDER BY gs`,
+      );
+
+      // How many cars vs bikes have used the lot, all-time.
+      const vehicleBreakdown = await db.query(
+        "SELECT vehicle_type, COUNT(*) AS count FROM sessions GROUP BY vehicle_type",
+      );
+
+      res.json({
+        vehiclesToday: Number(vehiclesToday.rows[0].count),
+        revenueToday: Number(revenueToday.rows[0].total),
+        currentlyParked: Number(currentlyParked.rows[0].count),
+        revenueTrend: revenueTrend.rows.map((r) => ({
+          day: r.day,
+          total: Number(r.total),
+        })),
+        vehicleBreakdown: vehicleBreakdown.rows.map((r) => ({
+          type: r.vehicle_type,
+          count: Number(r.count),
+        })),
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  },
+);
+
+// ── GET /api/admin/history ───────────────────────────────────────────────
+// Admin only. Every session, most recent first.
+app.get(
+  "/api/admin/history",
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const result = await db.query(
+        `SELECT s.id, s.plate_number, s.vehicle_type, sl.number AS slot_number,
+              s.entry_time, s.exit_time, s.fee_amount, s.payment_status, s.status,
+              u.name AS created_by
+       FROM sessions s
+       JOIN slots sl ON sl.id = s.slot_id
+       LEFT JOIN users u ON u.id = s.user_id
+       ORDER BY s.entry_time DESC
+       LIMIT 100`,
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to fetch history" });
+    }
+  },
+);
 
 app.listen(PORT, () => {
   console.log(`Slotify backend running at http://localhost:${PORT}`);
